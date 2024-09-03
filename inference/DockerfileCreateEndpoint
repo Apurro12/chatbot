@@ -1,0 +1,32 @@
+FROM python
+
+# Define the build argument
+ARG OPENAI_API_KEY
+ARG POSTGRES_DATABASE
+ARG POSTGRES_PASSWORD
+ARG EMBEDING_COLLECTION_NAME
+
+# Set the environment variable from the build argument
+ENV OPENAI_API_KEY=${OPENAI_API_KEY}
+ENV POSTGRES_DATABASE=${POSTGRES_DATABASE}
+ENV POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+ENV EMBEDING_COLLECTION_NAME=${EMBEDING_COLLECTION_NAME}
+
+RUN apt-get update
+# install gcc
+
+RUN pip install langchain
+RUN pip install -qU langchain_postgres
+RUN pip install -qU langchain-openai
+RUN pip install psycopg pandas 
+RUN pip install "fastapi[standard]"
+
+WORKDIR /home
+COPY inference/main.py .
+COPY ../utils/utils.py .
+
+CMD ["uvicorn","main:app","--host","0.0.0.0","--port","8000"]
+# CMD ["fastapi","dev","main.py"]
+
+# Just to dont kill container
+# CMD ["tail", "-f", "/dev/null"]
