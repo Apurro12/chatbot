@@ -1,4 +1,4 @@
-## E2E Chatbot Implementation using LangChain and Docker
+## E2E Chatbot Implementation using LangChain, Docker and FastApi
 
 To run locally, rename `.env.example` to `.env` and add your ChatGPT API key.
 
@@ -15,3 +15,16 @@ To run locally, rename `.env.example` to `.env` and add your ChatGPT API key.
 1. Abstract classes to handle multiple LLMs.
 2. Add memory to the chats using LangChain's built-in features.
 3. Implement CI/CD and testing.
+
+
+## Make inference
+Do a post request to this endpoint
+`http://localhost:8000/chatbot/`
+
+with a body like this
+
+`
+{
+    "query": "I want an department in Argentina"
+}
+`
