@@ -4,12 +4,11 @@ from fastapi import FastAPI
 import pandas as pd
 import openai
 from utils import get_postgres_vector_store
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage, SystemMessage
 
-
+model = ChatOpenAI(model="gpt-3.5-turbo")
 api_key = os.environ.get('OPENAI_API_KEY')
-
-
-client = openai.Client(api_key = api_key)
 vector_store = get_postgres_vector_store()
 
 def handle_db_result(search_results):
@@ -53,21 +52,10 @@ def extract_prefilter(query: str) -> dict[str, str | None]:
     Query: <{query}> "
     """
 
-    completion = client.chat.completions.create(
-        temperature= 0,
-        model="gpt-3.5-turbo",
-        messages=[
-            {
-                "role": "system", 
-                "content": "You need to extract features from an user question"},
-            {
-                "role": "user", 
-                "content": promp
-            }
-        ]
-    )
-
-    response = completion.choices[0].message.content
+    response = model.invoke([
+        SystemMessage(content = "You need to extract features from an user question"),
+        HumanMessage(content=promp)
+    ]).content
 
     # Any  other than a response than string raise an error
     assert type(response) == str
@@ -88,20 +76,12 @@ def handle_user_query(query):
 
     search_results_df =  handle_db_result(search_results)
 
-    completion = client.chat.completions.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {
-                "role": "system", 
-                "content": "You are a airbnb listing recommendation system."},
-            {
-                "role": "user", 
-                "content": f"Answer this user query: {query} with the following context:\n{search_results_df}"
-            }
-        ]
-    )
+    response = model.invoke([
+        SystemMessage(content = "You are a airbnb recommendation system."),
+        HumanMessage(content= f"Answer this user query: {query} with the following context:\n{search_results_df}")
+    ]).content
 
-    return {"response": completion.choices[0].message.content}
+    return {"response": response}
 
 
 class UserQuery(BaseModel):
