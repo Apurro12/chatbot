@@ -1,7 +1,7 @@
 FROM postgres:16
 
 RUN apt-get update
-# install gcc
+# install gcc (needed to instal pg_vector)
 RUN echo yes | apt-get install build-essential
 # dev files not included in vanilla postgres image
 RUN echo yes | apt-get install postgresql-server-dev-16
@@ -15,4 +15,40 @@ WORKDIR /tmp/pgvector
 RUN make 
 RUN make install
 
-COPY docker-entrypoint-initdb.d .
+# Install python
+WORKDIR /home
+RUN echo yes | apt-get install python3-venv
+RUN python3 -m venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+
+# Define the build argument
+ARG OPENAI_API_KEY
+ARG POSTGRES_DATABASE
+ARG POSTGRES_PASSWORD
+ARG EMBEDING_COLLECTION_NAME
+
+# Set the environment variable from the build argument
+ENV OPENAI_API_KEY=${OPENAI_API_KEY}
+ENV POSTGRES_DATABASE=${POSTGRES_DATABASE}
+ENV POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+ENV EMBEDING_COLLECTION_NAME=${EMBEDING_COLLECTION_NAME}
+
+# This must be moved to a requirements file 
+RUN pip3 install langchain
+RUN pip3 install -qU langchain_postgres
+RUN pip3 install -qU langchain-openai
+RUN pip3 install psycopg pandas 
+
+COPY postgres/utils.py .
+# The iarbnb data form Buenos Aires
+# You can get it here https://insideairbnb.com/get-the-data/
+RUN echo yes | apt-get install wget
+RUN wget https://data.insideairbnb.com/argentina/ciudad-aut%C3%B3noma-de-buenos-aires/buenos-aires/2024-06-29/data/listings.csv.gz
+RUN gzip -d listings.csv.gz 
+# RUN python3 01_insert_data.py
+# CMD ["python","01_insert_data.py"]
+
+COPY postgres/docker-entrypoint-initdb.d /docker-entrypoint-initdb.d
+COPY postgres/01_insert_data.py .
+COPY postgres/.env .

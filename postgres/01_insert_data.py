@@ -1,33 +1,45 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[2]:
+# In[1]:
 
 import re
-import os
 import pandas as pd
 from langchain_core.documents import Document
-import psycopg
-from utils import get_postgres_vector_store
 
-# In[1]: Check the data is not already insserted
+import os
+from langchain_postgres.vectorstores import PGVector
+from langchain_openai import OpenAIEmbeddings
 
-query = """
-SELECT EXISTS (
-SELECT FROM pg_tables
-WHERE  schemaname = 'public'
-AND    tablename  = 'langchain_pg_embedding'
-);
- """
+POSTGRES_DATABASE = os.environ.get("POSTGRES_DATABASE")
+POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD")
+collection_name = os.environ.get("EMBEDING_COLLECTION_NAME")
+openai_api_key = os.environ.get("OPENAI_API_KEY")
 
-with psycopg.connect("dbname=postgres user=postgres password=mysecretpassword host=postgresql") as conn:
-    with conn.cursor() as cur:
-        table_exists,  = cur.execute(query).fetchone() # type: ignore
 
-        # If the embedings are up to date
-        if table_exists:
-            exit(0)
+embeddings = OpenAIEmbeddings(
+    model="text-embedding-3-large",
+    api_key = openai_api_key
+)
 
+# In[2]:
+
+# This is a copy-paste of the other one bacause
+# In build is using socket insted of TCP, so I need to edit this fn
+# To be able to use in both places (build and runtime) 
+# Maybe get and environment to check if is build or runtime
+def get_postgres_vector_store():
+    #Because this is being doone on build, it is connecting using the unix socket
+    connection = f"postgresql+psycopg://postgres:{POSTGRES_PASSWORD}@:5432/{POSTGRES_DATABASE}"  # Uses psycopg3!
+
+    return_vector_store = PGVector(
+        embeddings=embeddings,
+        collection_name=collection_name,
+        connection=connection,
+        use_jsonb=True,
+    )
+
+    return return_vector_store
 
 
 # In[2]:
@@ -93,4 +105,3 @@ for index, row in df.iterrows():
 
 #The final docs
 vector_store.add_documents(documents)
-# %%
