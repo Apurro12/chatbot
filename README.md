@@ -10,6 +10,10 @@ To run locally, rename `.env.example` to `.env` and add your ChatGPT API key.
 4. Performs RAG (Retrieval-Augmented Generation) with the filtered data.
 5. Responds to user queries.
 
+
+### Testing.
+1) Performs LLM unit testing using LangSmith. This should be refactored and integrated into the CI pipeline, but it works as a proof of concept (POC).
+
 ### Next Planned Steps:
 
 1. Abstract classes to handle multiple LLMs.
