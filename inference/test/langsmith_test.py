@@ -9,12 +9,15 @@ import os
 LANGCHAIN_API_KEY = os.environ.get("LANGCHAIN_API_KEY")
 LANGCHAIN_ENDPOINT = os.environ.get("LANGCHAIN_ENDPOINT")
 
-client = Client(
-    api_url = LANGCHAIN_ENDPOINT,
-    api_key = LANGCHAIN_API_KEY
-)
+
 
 def get_feedback(results):
+
+    client = Client(
+        api_url = LANGCHAIN_ENDPOINT,
+        api_key = LANGCHAIN_API_KEY
+    )
+
     return list(
         client.list_feedback(
             run_ids=[r.id for r in client.list_runs(project_name=results.experiment_name)],
@@ -47,6 +50,10 @@ def test_json_extract() -> None:
             custom_json_evaluator
         ],
     )
+
+    # I didn't forget this print here
+    # Is to search the current experiment in langsmith
+    print("experiment", experiment_results.experiment_name)
 
     # Check doc, this will be changed in next releases
     # The server have some delay to log the result

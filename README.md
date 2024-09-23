@@ -12,13 +12,13 @@ To run locally, rename `.env.example` to `.env` and add your ChatGPT API key.
 
 
 ### Testing.
-1) Performs LLM unit testing using LangSmith. This should be refactored and integrated into the CI pipeline, but it works as a proof of concept (POC).
+1) Perform unit testing over the promps using Langsmith, only the promp that extract filters is being tested with one example case for now. More examples and more promps will be added in the future
 
 ### Next Planned Steps:
 
 1. Abstract classes to handle multiple LLMs.
 2. Add memory to the chats using LangChain's built-in features.
-3. Implement CI/CD and testing.
+3. Expand CI and implement CD.
 
 
 ## Make inference
