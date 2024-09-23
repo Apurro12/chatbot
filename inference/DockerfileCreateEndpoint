@@ -6,11 +6,23 @@ ARG POSTGRES_DATABASE
 ARG POSTGRES_PASSWORD
 ARG EMBEDING_COLLECTION_NAME
 
+# Need to move to a multi stage build later
+ARG LANGCHAIN_PROJECT
+ARG LANGCHAIN_API_KEY
+ARG LANGCHAIN_ENDPOINT
+ARG LANGCHAIN_TRACING_V2
+
 # Set the environment variable from the build argument
 ENV OPENAI_API_KEY=${OPENAI_API_KEY}
 ENV POSTGRES_DATABASE=${POSTGRES_DATABASE}
 ENV POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
 ENV EMBEDING_COLLECTION_NAME=${EMBEDING_COLLECTION_NAME}
+
+# Need to move to a multi stage build later
+ENV LANGCHAIN_PROJECT=${LANGCHAIN_PROJECT}
+ENV LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY}
+ENV LANGCHAIN_ENDPOINT=${LANGCHAIN_ENDPOINT}
+ENV LANGCHAIN_TRACING_V2=${LANGCHAIN_TRACING_V2}
 
 RUN apt-get update
 # install gcc
@@ -20,13 +32,20 @@ RUN pip install -qU langchain_postgres
 RUN pip install -qU langchain-openai
 RUN pip install psycopg pandas 
 RUN pip install "fastapi[standard]"
+# Multi stage build needed
+RUN pip install pytest 
 
 WORKDIR /home
+# Multi stage build and refactor needed
+COPY inference/test/langsmith_test.py .
 COPY inference/main.py .
 COPY ../utils/utils.py .
 
+# For production
 CMD ["uvicorn","main:app","--host","0.0.0.0","--port","8000"]
+
+# Reload in every change
 # CMD ["fastapi","dev","main.py"]
 
 # Just to dont kill container
-# CMD ["tail", "-f", "/dev/null"]
+#CMD ["tail", "-f", "/dev/null"]

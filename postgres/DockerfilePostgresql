@@ -40,7 +40,6 @@ RUN pip3 install -qU langchain_postgres
 RUN pip3 install -qU langchain-openai
 RUN pip3 install psycopg pandas 
 
-COPY postgres/utils.py .
 # The iarbnb data form Buenos Aires
 # You can get it here https://insideairbnb.com/get-the-data/
 RUN echo yes | apt-get install wget

@@ -4,3 +4,5 @@
 .vscode/
 inference/*.ipynb
 inference/__pycache__/
+.idea/
+experimental/

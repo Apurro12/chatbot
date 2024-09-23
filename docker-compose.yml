@@ -2,24 +2,6 @@ version: "3.3"
 
 services:
 
-#  data_loader:
-#    build:
-#      context: .
-#      dockerfile: ./data_loader/DockerfileInsertData
-#      args:
-#        - OPENAI_API_KEY="${OPENAI_API_KEY}"
-#        - POSTGRES_DATABASE=${POSTGRES_DATABASE}
-#        - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-#        - EMBEDING_COLLECTION_NAME=${EMBEDING_COLLECTION_NAME}
-#    environment:
-#      - OPENAI_API_KEY=${OPENAI_API_KEY}
-#      - POSTGRES_DATABASE=${POSTGRES_DATABASE}
-#      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-#      - EMBEDING_COLLECTION_NAME=${EMBEDING_COLLECTION_NAME}
-#    depends_on:
-#      postgresql:
-#        condition: service_healthy
-
   inference:
     build:
       context: .
@@ -29,11 +11,20 @@ services:
         - POSTGRES_DATABASE=${POSTGRES_DATABASE}
         - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
         - EMBEDING_COLLECTION_NAME=${EMBEDING_COLLECTION_NAME}
+        - LANGCHAIN_PROJECT=${LANGCHAIN_PROJECT}
+        - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY}
+        - LANGCHAIN_ENDPOINT=${LANGCHAIN_ENDPOINT}
+        - LANGCHAIN_TRACING_V2=${LANGCHAIN_TRACING_V2}
+
     environment:
       - OPENAI_API_KEY=${OPENAI_API_KEY}
       - POSTGRES_DATABASE=${POSTGRES_DATABASE}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
       - EMBEDING_COLLECTION_NAME=${EMBEDING_COLLECTION_NAME}
+      - LANGCHAIN_PROJECT=${LANGCHAIN_PROJECT}
+      - LANGCHAIN_API_KEY=${LANGCHAIN_API_KEY}
+      - LANGCHAIN_ENDPOINT=${LANGCHAIN_ENDPOINT}
+      - LANGCHAIN_TRACING_V2=${LANGCHAIN_TRACING_V2}
     depends_on:
       postgresql:
         condition: service_healthy
