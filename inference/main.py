@@ -48,11 +48,13 @@ def extract_prefilter(query: str) -> dict[str, str | None]:
     User Query: 'How much costs a flat in New York with just one bath'
     Response: {{"bathroms": 1,"price": None}}
     
+    Do not respond anything different from the desired JSON
+
     Query: <{query}> "
     """
 
     response = model.invoke([
-        SystemMessage(content = "You need to extract features from an user question"),
+        SystemMessage(content = "You need to extract features from an user question, you are going to respond a JSON, and you are using None for not found values"),
         HumanMessage(content=promp)
     ]).content
 
