@@ -30,7 +30,7 @@ jobs:
       # Step 5: Run tests inside the Docker container
       - name: Run tests in Docker container
         run: |
-          docker run -e OPENAI_API_KEY=$OPENAI_API_KEY -e LANGCHAIN_TRACING_V2=$LANGCHAIN_TRACING_V2  -e LANGCHAIN_ENDPOINT=$LANGCHAIN_ENDPOINT -e LANGCHAIN_API_KEY=$LANGCHAIN_API_KEY -e LANGCHAIN_PROJECT=$LANGCHAIN_PROJECT --rm inference:latest pytest -s langsmith_test.py
+          docker run -e OPENAI_API_KEY=$OPENAI_API_KEY -e LANGCHAIN_TRACING_V2=$LANGCHAIN_TRACING_V2  -e LANGCHAIN_ENDPOINT=$LANGCHAIN_ENDPOINT -e LANGCHAIN_API_KEY=$LANGCHAIN_API_KEY -e LANGCHAIN_PROJECT=$LANGCHAIN_PROJECT --rm inference:latest pytest -s
         env:
           POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
           COMPOSE_PROJECT_NAME: ${{ secrets.COMPOSE_PROJECT_NAME }}
