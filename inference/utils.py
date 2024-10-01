@@ -1,4 +1,5 @@
 import os
+from ast import literal_eval
 from langchain_postgres.vectorstores import PGVector
 from langchain_openai import OpenAIEmbeddings, ChatOpenAI
 import pandas as pd
@@ -7,24 +8,27 @@ from langchain_core.messages import HumanMessage, SystemMessage
 
 POSTGRES_DATABASE = os.environ.get("POSTGRES_DATABASE")
 POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD")
-openai_api_key  = os.environ.get("OPENAI_API_KEY")
-collection_name = os.environ.get("EMBEDING_COLLECTION_NAME") or ''
+openai_api_key = os.environ.get("OPENAI_API_KEY")
+collection_name = os.environ.get("EMBEDING_COLLECTION_NAME") or ""
+
 
 def handle_db_result(search_results):
 
     df = pd.DataFrame()
     for doc in search_results:
-    
-        df_insert = pd.DataFrame({
-        "description": [doc.page_content],
-        "price": [doc.metadata["price"]], 
-        "bathrooms": [doc.metadata["bathrooms"]]
-        })
-    
+
+        df_insert = pd.DataFrame(
+            {
+                "description": [doc.page_content],
+                "price": [doc.metadata["price"]],
+                "bathrooms": [doc.metadata["bathrooms"]],
+            }
+        )
+
         df = pd.concat([df, df_insert])
-    
+
     # index 1,2,3 .... N
-    df.reset_index(drop = True)
+    df.reset_index(drop=True)
 
     return df
 
@@ -56,21 +60,27 @@ def extract_prefilter(query: str) -> dict[str, str | None]:
     Query: <{query}> "
     """
 
-    response = extract_prefilter_model.invoke([
-        SystemMessage(content = "You need to extract features from an user question, you are going to respond a python dict with two keys \"bathroms\" and \"price\", and you are using None for not found values"),
-        HumanMessage(content=promp)
-    ]).content
+    # pylint: disable=line-too-long
+    system_message = 'You need to extract features from an user question, you are going to respond a python dict with two keys "bathroms" and "price", and you are using None for not found values'
+    response = extract_prefilter_model.invoke(
+        [
+            SystemMessage(content=system_message),
+            HumanMessage(content=promp),
+        ]
+    ).content
 
     # Any  other than a response than string raise an error
-    assert type(response) == str
+    assert isinstance(response, str)
     return response
 
 
 def parse_filters(json_filter):
     dict_operator = {"price": "$lte", "bathrooms": "$eq"}
-    base_dict = dict()
+    base_dict = {}
     for amenity, operator in dict_operator.items():
-        add_dict = {amenity: {operator: json_filter[amenity]}} if json_filter[amenity] else {}
+        add_dict = (
+            {amenity: {operator: json_filter[amenity]}} if json_filter[amenity] else {}
+        )
         base_dict = base_dict | add_dict
 
     return base_dict
@@ -79,22 +89,23 @@ def parse_filters(json_filter):
 def handle_user_query(query):
 
     vector_store = get_postgres_vector_store()
-    condition = eval(extract_prefilter(query))
-    pre_filter = {"price": {"$lte":condition["price"]}} if condition["price"] else {}
+    condition = literal_eval(extract_prefilter(query))
+    pre_filter = {"price": {"$lte": condition["price"]}} if condition["price"] else {}
 
-    search_results = vector_store.similarity_search(
-        query,
-        k=3,
-        filter= pre_filter
-    )
+    search_results = vector_store.similarity_search(query, k=3, filter=pre_filter)
 
-    search_results_df =  handle_db_result(search_results)
+    search_results_df = handle_db_result(search_results)
 
     create_recomendation_model = ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
-    response = create_recomendation_model.invoke([
-        SystemMessage(content = "You are a airbnb recommendation system."),
-        HumanMessage(content= f"Answer this user query: {query} with the following context:\n{search_results_df}")
-    ]).content
+    response = create_recomendation_model.invoke(
+        [
+            SystemMessage(content="You are a airbnb recommendation system."),
+            HumanMessage(
+                # pylint: disable=line-too-long
+                content=f"Answer this user query: {query} with the following context:\n{search_results_df}"
+            ),
+        ]
+    ).content
 
     return {"response": response}
 
@@ -102,11 +113,10 @@ def handle_user_query(query):
 def get_postgres_vector_store():
 
     embeddings = OpenAIEmbeddings(
-        model="text-embedding-3-large",
-        api_key = openai_api_key
+        model="text-embedding-3-large", api_key=openai_api_key
     )
 
-
+    # pylint: disable=line-too-long
     connection = f"postgresql+psycopg://postgres:{POSTGRES_PASSWORD}@postgresql/{POSTGRES_DATABASE}"  # Uses psycopg3!
 
     vector_store = PGVector(
