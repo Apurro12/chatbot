@@ -29,7 +29,7 @@ embeddings = OpenAIEmbeddings(
 # To be able to use in both places (build and runtime) 
 # Maybe get and environment to check if is build or runtime
 def get_postgres_vector_store():
-    #Because this is being doone on build, it is connecting using the unix socket
+    #Because this is being done on build, it is connecting using the unix socket
     connection = f"postgresql+psycopg://postgres:{POSTGRES_PASSWORD}@:5432/{POSTGRES_DATABASE}"  # Uses psycopg3!
 
     return_vector_store = PGVector(

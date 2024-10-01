@@ -7,7 +7,7 @@ from langchain_openai import ChatOpenAI
 from utils import get_postgres_vector_store
 from langchain_core.messages import HumanMessage, SystemMessage
 
-model = ChatOpenAI(model="gpt-3.5-turbo")
+model = ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
 api_key = os.environ.get('OPENAI_API_KEY')
 
 def handle_db_result(search_results):
@@ -54,7 +54,7 @@ def extract_prefilter(query: str) -> dict[str, str | None]:
     """
 
     response = model.invoke([
-        SystemMessage(content = "You need to extract features from an user question, you are going to respond a JSON, and you are using None for not found values"),
+        SystemMessage(content = "You need to extract features from an user question, you are going to respond a JSON with two keys \"bathroms\" and \"price\", and you are using None for not found values"),
         HumanMessage(content=promp)
     ]).content
 
