@@ -33,7 +33,7 @@ RUN pip install -qU langchain-openai
 RUN pip install psycopg pandas 
 RUN pip install "fastapi[standard]"
 # Multi stage build needed
-RUN pip install pytest 
+RUN pip install pytest pylint
 
 WORKDIR /home
 # Multi stage build and refactor needed

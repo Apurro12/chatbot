@@ -27,6 +27,11 @@ jobs:
         run: |
           docker build --build-arg OPENAI_API_KEY=$OPENAI_API_KEY --build-arg LANGCHAIN_TRACING_V2=$LANGCHAIN_TRACING_V2  --build-arg LANGCHAIN_ENDPOINT=$LANGCHAIN_ENDPOINT --build-arg LANGCHAIN_API_KEY=$LANGCHAIN_API_KEY --build-arg LANGCHAIN_PROJECT=$LANGCHAIN_PROJECT -t inference:latest -f inference/DockerfileCreateEndpoint .
 
+      # Step: Run pylint
+      - name: Run pylint in Docker container
+        run: |
+          docker run --rm inference:latest pylint . --disable=missing-docstring
+
       # Step 5: Run tests inside the Docker container
       - name: Run tests in Docker container
         run: |
