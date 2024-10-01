@@ -1,4 +1,4 @@
-from main import extract_prefilter
+from utils import extract_prefilter
 from langchain.evaluation import JsonEqualityEvaluator
 from langsmith import Client
 from langsmith.evaluation import LangChainStringEvaluator, evaluate

@@ -37,9 +37,9 @@ RUN pip install pytest
 
 WORKDIR /home
 # Multi stage build and refactor needed
-COPY inference/test/langsmith_test.py .
+COPY inference/test/*_test.py .
 COPY inference/main.py .
-COPY ../utils/utils.py .
+COPY inference/utils.py .
 
 # For production
 CMD ["uvicorn","main:app","--host","0.0.0.0","--port","8000"]
