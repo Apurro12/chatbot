@@ -1,20 +1,21 @@
 import os
 import json
+import time
 from langchain.evaluation import JsonEqualityEvaluator
 from langsmith import Client
 from langsmith.evaluation import evaluate
 from langsmith.schemas import Example, Run
 from utils import extract_prefilter
 
-
 LANGCHAIN_API_KEY = os.environ.get("LANGCHAIN_API_KEY")
 LANGCHAIN_ENDPOINT = os.environ.get("LANGCHAIN_ENDPOINT")
 
+client = Client(
+    api_url=LANGCHAIN_ENDPOINT,
+    api_key=LANGCHAIN_API_KEY
+)
 
 def get_feedback(results):
-
-    client = Client(api_url=LANGCHAIN_ENDPOINT, api_key=LANGCHAIN_API_KEY)
-
     return list(
         client.list_feedback(
             run_ids=[
@@ -49,8 +50,13 @@ def test_json_extract() -> None:
     experiment_results = evaluate(
         langsmith_app,
         data="JSON-dataset",
-        evaluators=[custom_json_evaluator],
+        evaluators=[
+            custom_json_evaluator
+        ],
+        client= client
     )
+
+    number_of_examples = client.read_dataset(dataset_name="JSON-dataset").example_count
 
     # I didn't forget this print here
     # Is to search the current experiment in langsmith
@@ -59,10 +65,16 @@ def test_json_extract() -> None:
     # Check doc, this will be changed in next releases
     # The server have some delay to log the result
     feedback_results = get_feedback(experiment_results)
-    print(feedback_results)
-    while len(feedback_results) == 0:
+
+    request_counter = 0
+    while len(feedback_results) != number_of_examples:
+        time.sleep(1)
+        request_counter += 1
         feedback_results = get_feedback(experiment_results)
-        print(feedback_results)
+
+        # Hardcoded value
+        if request_counter > 10:
+            raise Exception("Too many requests to langsmith") # pylint: disable=broad-exception-raised
 
     # All examples must be positive
     all_results_are_true = all(map(lambda row: row.score == 1, feedback_results))
