@@ -4,10 +4,10 @@ import time
 from utils import extract_prefilter
 from langchain.evaluation import JsonEqualityEvaluator
 from langsmith import Client
-from langsmith.evaluation import LangChainStringEvaluator, evaluate
+from langsmith.evaluation import evaluate
 from langsmith.schemas import Example, Run
-import json
-import os
+from utils import extract_prefilter
+
 
 LANGCHAIN_API_KEY = os.environ.get("LANGCHAIN_API_KEY")
 LANGCHAIN_ENDPOINT = os.environ.get("LANGCHAIN_ENDPOINT")
@@ -17,30 +17,35 @@ client = Client(
     api_key=LANGCHAIN_API_KEY
 )
 
-
 def get_feedback(results):
     return list(
         client.list_feedback(
-            run_ids=[r.id for r in client.list_runs(project_name=results.experiment_name)],
-            feedback_key="custom_json_evaluator"
-        ))
+            run_ids=[
+                r.id for r in client.list_runs(project_name=results.experiment_name)
+            ],
+            feedback_key="custom_json_evaluator",
+        )
+    )
 
 
 def langsmith_app(inputs):
     output = extract_prefilter(inputs["query"])
     return {"output": output}
 
+
 evaluator = JsonEqualityEvaluator()
 
+
 def custom_json_evaluator(run: Run, example: Example) -> dict:
-    try: 
-        parsed_json =  json.loads(run.outputs["output"])
+    try:
+        parsed_json = json.loads(run.outputs["output"])
         example = example.outputs["result"]
-        return {"key": "custom_json_evaluator", "score": int(parsed_json == example)} 
+        return {"key": "custom_json_evaluator", "score": int(parsed_json == example)}
     except json.JSONDecodeError:
-        return {"key": "custom_json_evaluator", "score": 0} 
-    except:
         return {"key": "custom_json_evaluator", "score": 0}
+    except:  # pylint: disable=bare-except
+        return {"key": "custom_json_evaluator", "score": 0}
+
 
 def test_json_extract() -> None:
     """Test all json are correctly extracted"""
@@ -68,11 +73,11 @@ def test_json_extract() -> None:
         time.sleep(1)
         request_counter += 1
         feedback_results = get_feedback(experiment_results)
-
+        
         # Hardcoded value
         if request_counter > 10:
             raise Exception("Too many requests to langsmith") # pylint: disable=broad-exception-raised
 
-    #All examples must be positive
+    # All examples must be positive
     all_results_are_true = all(map(lambda row: row.score == 1, feedback_results))
-    assert(all_results_are_true)
+    assert all_results_are_true
