@@ -21,7 +21,15 @@ def handle_db_result(search_results):
             {
                 "description": [doc.page_content],
                 "price": [doc.metadata["price"]],
+                "name": [doc.metadata["name"]],
                 "bathrooms": [doc.metadata["bathrooms"]],
+                "review_scores_rating": [doc.metadata["review_scores_rating"]],
+                "review_scores_accuracy": [doc.metadata["review_scores_accuracy"]],
+                "review_scores_cleanliness": [doc.metadata["review_scores_cleanliness"]],
+                "review_scores_checkin": [doc.metadata["review_scores_checkin"]],
+                "review_scores_communication": [doc.metadata["review_scores_communication"]],
+                "review_scores_location": [doc.metadata["review_scores_location"]],
+                "review_scores_value": [doc.metadata["review_scores_value"]],
             }
         )
 
@@ -86,6 +94,55 @@ def parse_filters(json_filter):
     return base_dict
 
 
+
+def get_rank_score(df_row):
+
+    # Random generated weights
+    # To be able to create experiments this should me moved
+    # to a config file or similar
+    rank_weights = {
+        'review_scores_rating': 0.24,
+         'review_scores_accuracy': 0.11,
+         'review_scores_cleanliness': 0.02,
+         'review_scores_checkin': 0.57,
+         'review_scores_communication': 0.75,
+         'review_scores_location': 0.65,
+         'review_scores_value': 0.33
+    }
+
+    field_weight = [value * df_row[key] for key, value in rank_weights.items()]
+    total_row_weight = sum(field_weight)
+    return total_row_weight
+
+
+def postfilter(df):
+    # This are the same cols that are being used to do reranking
+    # This is not necesarly true but it works for now
+    non_nullable_cols = [
+        'review_scores_rating',
+         'review_scores_accuracy',
+         'review_scores_cleanliness',
+         'review_scores_checkin',
+         'review_scores_communication',
+         'review_scores_location',
+         'review_scores_value',
+    ]
+
+    df =  df.dropna(subset = non_nullable_cols)
+
+    return df
+
+def rerank(df):
+
+    df = df.copy()
+    df["ranking_score"] = df.apply(get_rank_score, axis = 1)
+    df = df.sort_values(by = "ranking_score").head(1)
+    del df["ranking_score"]
+
+    return df
+
+
+
 def handle_user_query(query):
 
     vector_store = get_postgres_vector_store()
@@ -96,13 +153,20 @@ def handle_user_query(query):
 
     search_results_df = handle_db_result(search_results)
 
+    # Do postfilter based on some criteria
+    search_results_df = postfilter(search_results_df)
+
+    # Rank result based on certain criteria
+    # This is just an example
+    search_results_df = rerank(search_results_df)
+
     create_recomendation_model = ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
     response = create_recomendation_model.invoke(
         [
             SystemMessage(content="You are a airbnb recommendation system."),
             HumanMessage(
                 # pylint: disable=line-too-long
-                content=f"Answer this user query: {query} with the following context:\n{search_results_df}"
+                content=f"Answer this user query: {query} using always the name of the property and any other necesarly information, using  the following context:\n{search_results_df}"
             ),
         ]
     ).content

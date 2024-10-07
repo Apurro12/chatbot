@@ -44,10 +44,28 @@ def get_postgres_vector_store():
 
 # In[2]:
 
+metadata_cols = [
+    "beds",
+    "bathrooms_text",
+    "bathrooms",
+    "accommodates",
+    "price",
+    "review_scores_rating",
+    "review_scores_accuracy",
+    "review_scores_cleanliness",
+    "review_scores_checkin",
+    "review_scores_communication",
+    "review_scores_location",
+    "review_scores_value",
+    "name"
+]
+
+usecols = ["description"] + metadata_cols
+
 
 df: pd.DataFrame = pd.read_csv(
     filepath_or_buffer = "listings.csv",
-    usecols= ["description","beds","bathrooms_text","bathrooms","accommodates","price"],
+    usecols= usecols,
     nrows = 100 #just for testing
 )
 
@@ -67,16 +85,14 @@ def extract_number_with_decimal(text: str):
 # In[5]:
 
 
-df["price_float"] = df["price"].str.replace('$','').str.replace(',','').astype(float)
-df["bathrooms_float"] = (
-    df["bathrooms_text"]
+df["price"] = df["price"].str.replace('$','').str.replace(',','').astype(float)
+df["bathrooms"] = (
+    df["bathrooms"]
         .apply(lambda row: float(extract_number_with_decimal(str(row))))
 )
 
-df["description_lower"] = df["description"].str.lower()
-
-df = df[["price_float","bathrooms_float","description_lower"]]
-df = df.dropna(subset = ["description_lower"])
+df["description"] = df["description"].str.lower()
+df = df.dropna(subset = ["description"])
 
 df.reset_index(drop = True)
 df = df.fillna('null')
@@ -93,8 +109,8 @@ documents = []
 
 for index, row in df.iterrows():
     doc = Document(
-        page_content= row["description_lower"],
-        metadata={"price": row["price_float"], "bathrooms": row["bathrooms_float"]},
+        page_content= row["description"],
+        metadata= {key: row[key] for key in metadata_cols}
     )
 
     documents.append(doc)
@@ -104,4 +120,5 @@ for index, row in df.iterrows():
         documents = []
 
 #The final docs
-vector_store.add_documents(documents)
+if len(documents):
+    vector_store.add_documents(documents)
