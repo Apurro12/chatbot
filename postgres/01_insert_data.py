@@ -66,7 +66,7 @@ usecols = ["description"] + metadata_cols
 df: pd.DataFrame = pd.read_csv(
     filepath_or_buffer = "listings.csv",
     usecols= usecols,
-    nrows = 100 #just for testing
+    # nrows = 100 #just for testing
 )
 
 # In[4]:
