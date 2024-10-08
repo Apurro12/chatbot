@@ -40,3 +40,6 @@ with a body like this
 Or you can use the web interface in 
 `http://localhost:8000/webpage/`
 where you can check all the intermediate results
+
+<img width="1509" alt="Screenshot 2024-10-08 at 3 26 30 PM" src="https://github.com/user-attachments/assets/ef427ed0-d4ef-4f94-ba19-7ea9a77e735a"><img width="1490" alt="Screenshot 2024-10-08 at 3 26 39 PM" src="https://github.com/user-attachments/assets/6a260a69-63c7-481b-9e0e-2f83c56cf500">
+
