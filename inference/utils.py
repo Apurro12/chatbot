@@ -227,7 +227,7 @@ def get_postgres_vector_store():
 
     # pylint: disable=line-too-long
     connection = f"postgresql+psycopg://postgres:{POSTGRES_PASSWORD}@postgresql/{POSTGRES_DATABASE}"  # Uses psycopg3!
-
+    #connection = "postgresql+psycopg://localhost/vectordb?user=camilo_amadio&password=mysecretpassword"
 
     vector_store = PGVector(
         embeddings=embeddings,
