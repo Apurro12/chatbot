@@ -1,4 +1,8 @@
-FROM python
+# https://docs.python.org/3.13/whatsnew/3.13.html
+# In python 3.12 (released yesterday) there are doing experiments with GIL
+# And pip is usint .toml file
+# Until everything is stable, I'm fixing the version
+FROM python:3.12
 
 # Define the build argument
 ARG OPENAI_API_KEY
