@@ -161,7 +161,7 @@ def handle_intermediate_steps(query):
 
     vector_store = get_postgres_vector_store()
     condition = literal_eval(extract_prefilter(query))
-    pre_filter = {"price": {"$lte": condition["price"]}} if condition["price"] else {}
+    pre_filter = parse_filters(condition)
 
     search_results = vector_store.similarity_search(query, k=3, filter=pre_filter)
 
