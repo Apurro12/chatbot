@@ -9,8 +9,24 @@ from langchain_core.messages import HumanMessage, SystemMessage
 POSTGRES_DATABASE = os.environ.get("POSTGRES_DATABASE")
 POSTGRES_PASSWORD = os.environ.get("POSTGRES_PASSWORD")
 openai_api_key = os.environ.get("OPENAI_API_KEY")
-collection_name = os.environ.get("EMBEDING_COLLECTION_NAME") or ""
+collection_name = os.environ.get("EMBEDING_COLLECTION_NAME") or "vector_collection"
 
+
+class MockDf():
+    def __init__(self, message):
+        self.message = message
+
+    def to_html(self):
+        return self.message
+
+    def __bool__(self):
+        return False
+
+    def _str__(self):
+        return "no context provided"
+
+    def __getitem__(self, item):
+        return self
 
 def handle_db_result(search_results):
 
@@ -141,9 +157,7 @@ def rerank(df):
 
     return df
 
-
-
-def handle_user_query(query):
+def handle_intermediate_steps(query):
 
     vector_store = get_postgres_vector_store()
     condition = literal_eval(extract_prefilter(query))
@@ -151,27 +165,58 @@ def handle_user_query(query):
 
     search_results = vector_store.similarity_search(query, k=3, filter=pre_filter)
 
-    search_results_df = handle_db_result(search_results)
+    if search_results:
+        raw_search_results_df = handle_db_result(search_results)
+    else:
+        raw_search_results_df = MockDf("No results from db")
 
     # Do postfilter based on some criteria
-    search_results_df = postfilter(search_results_df)
+    if isinstance(raw_search_results_df, pd.DataFrame):
+        postfilter_search_results_df = postfilter(raw_search_results_df)
+    else:
+        postfilter_search_results_df = MockDf("No results after postfilter")
 
     # Rank result based on certain criteria
     # This is just an example
-    search_results_df = rerank(search_results_df)
+    if isinstance(postfilter_search_results_df, pd.DataFrame):
+        rerank_search_results = rerank(postfilter_search_results_df)
+    else:
+        rerank_search_results = MockDf("No results after rerank")
+
 
     create_recomendation_model = ChatOpenAI(model="gpt-3.5-turbo", temperature=0)
+
+    promp =f"""
+    Answer this user query: {query} using the context between <>. \n
+    Always the name of the property and any other necesarly information. \n
+    If not context is provided say that the user must adjust the filters. \n
+
+    context: <\n{rerank_search_results} \n >"""
     response = create_recomendation_model.invoke(
         [
             SystemMessage(content="You are a airbnb recommendation system."),
             HumanMessage(
                 # pylint: disable=line-too-long
-                content=f"Answer this user query: {query} using always the name of the property and any other necesarly information, using  the following context:\n{search_results_df}"
+                content= promp
             ),
         ]
     ).content
 
-    return {"response": response}
+    return {
+        "condition": condition,
+        "pre_filter": pre_filter,
+        # pylint: disable=line-too-long
+        "raw_search_results": raw_search_results_df[["name","description","price","bathrooms"]].to_html(),
+        # pylint: disable=line-too-long
+        "postfilter_search_results": postfilter_search_results_df[["name","description","price","bathrooms"]].to_html(),
+        # pylint: disable=line-too-long
+        "rerank_search_results": rerank_search_results[["name","description","price","bathrooms"]].to_html(),
+        "promp": promp,
+        "response": response
+        }
+
+def handle_user_query(query):
+    return handle_intermediate_steps(query)["response"]
 
 
 def get_postgres_vector_store():
@@ -182,6 +227,7 @@ def get_postgres_vector_store():
 
     # pylint: disable=line-too-long
     connection = f"postgresql+psycopg://postgres:{POSTGRES_PASSWORD}@postgresql/{POSTGRES_DATABASE}"  # Uses psycopg3!
+
 
     vector_store = PGVector(
         embeddings=embeddings,

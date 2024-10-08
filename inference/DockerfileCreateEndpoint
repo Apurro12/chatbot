@@ -44,12 +44,14 @@ WORKDIR /home
 COPY inference/test/*_test.py .
 COPY inference/main.py .
 COPY inference/utils.py .
+COPY inference/static ./static
+COPY inference/templates ./templates
 
 # For production
 CMD ["uvicorn","main:app","--host","0.0.0.0","--port","8000"]
 
 # Reload in every change
-# CMD ["fastapi","dev","main.py"]
+# CMD ["fastapi","dev","main.py","--port","8080","--host","0.0.0.0"]
 
 # Just to dont kill container
 #CMD ["tail", "-f", "/dev/null"]
