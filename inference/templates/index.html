@@ -1,0 +1,105 @@
+<!-- Generated with ChatGPT help -->
+<!-- https://chatgpt.com/share/67040b54-5134-8004-a71c-07de11fb8394 -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Query Box Example</title>
+    <style>
+        .query-box {
+            width: 100%;
+            height: 100px;
+            margin-bottom: 10px;
+        }
+        .result-box {
+            margin-top: 20px;
+            width: 100%;
+            height: 300px; /* Increase or set as per your requirement */
+            max-height: 300px; /* Limit the height */
+            border: 1px solid black;
+            padding: 10px;
+            background-color: #f1f1f1;
+            overflow: auto; /* Enable scrolling if content overflows */
+            word-wrap: break-word; /* Ensure content doesn't overflow horizontally */
+        }
+    </style>
+</head>
+<body>
+    <h1>Send Query</h1>
+
+    <!-- Input box for the query -->
+    <h2>Simulate a query here, e.g. "I want an appartment with tho bathrooms and for bellow 200 usd the night":</h2>
+    <textarea class="query-box" id="queryInput" placeholder="Write your query here..."></textarea>
+    
+    <button id="sendQueryButton">Send Query</button>
+    
+    <h2>Here there are the extracted filters from the query</h2>
+    <!-- Box to display the intermediate result -->
+    <div class="result-box" id="extracted_filter">Intermediate result will be displayed here</div>
+    
+    <h2>This is the data extracted from the db using the filters + contextual similarity:</h2>
+    <!-- Box to display the final result -->
+    <div class="result-box" id="raw_search_result">Final result will be displayed here</div>
+
+    <h2>Here is the data after a postfiltering operation:</h2>
+    <!-- Box to display the final result -->
+    <div class="result-box" id="postfilter_result">Final result will be displayed here</div>
+
+    <h2>Here is the result after a custom reranking:</h2>
+    <!-- Box to display the final result -->
+    <div class="result-box" id="rerank_result">Final result will be displayed here</div>
+
+    <h2>This is the promp sent to the system:</h2>
+    <!-- Box to display the final result -->
+    <div class="result-box" id="prompt">The promp sent</div>
+
+    <h2>This is the final system response:</h2>
+    <!-- Box to display the final result -->
+    <div class="result-box" id="system_response">Final result will be displayed here</div>
+
+    <script>
+        // Event listener for the button
+        document.getElementById("sendQueryButton").addEventListener("click", async function () {
+            const query = document.getElementById("queryInput").value; // Get the query
+
+            // Send the query to the endpoint
+            const response = await fetch('/intermediate/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json' // Set content type to JSON
+                },
+                body: JSON.stringify({query}), // Send the query in the request body
+            });
+
+            const result = await response.json(); // Get the JSON response
+            if (response.ok) {
+                // Display the intermediate result
+                document.getElementById("extracted_filter").innerHTML = JSON.stringify(result.condition);
+                // Display the final result
+                document.getElementById("raw_search_result").innerHTML = result.raw_search_results;
+
+                // Display the final result
+                document.getElementById("postfilter_result").innerHTML = result.postfilter_search_results;
+
+                // Display the final result
+                document.getElementById("rerank_result").innerHTML = result.rerank_search_results;
+
+                // Display the final result
+                document.getElementById("prompt").innerText = result.promp;
+
+                // Display the final result
+                document.getElementById("system_response").innerText = result.response;
+
+            } else {
+                document.getElementById("extracted_filter").innerHTML = "Failed to submit query";
+                document.getElementById("raw_search_result").innerHTML = "Failed to submit query";
+                document.getElementById("postfilter_result").innerHTML = "Failed to submit query";
+                document.getElementById("rerank_result").innerHTML = "Failed to submit query";
+                document.getElementById("system_response").innerHTML = "Failed to submit query";
+                document.getElementById("prompt").innerHTML = "Failed to submit query";
+            }
+        });
+    </script>
+</body>
+</html>

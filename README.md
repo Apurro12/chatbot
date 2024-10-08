@@ -36,3 +36,7 @@ with a body like this
     "query": "I want an department in Argentina"
 }
 `
+
+Or you can use the web interface in 
+`http://localhost:8000/webpage/`
+where you can check all the intermediate results

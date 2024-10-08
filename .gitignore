@@ -6,3 +6,7 @@ inference/*.ipynb
 inference/__pycache__/
 .idea/
 experimental/
+postgres/listings.csv
+listings.csv
+inference/test/__pycache__/
+inference/listings.csv
