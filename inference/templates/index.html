@@ -75,15 +75,15 @@
             const result = await response.json(); // Get the JSON response
             if (response.ok) {
                 // Display the intermediate result
-                document.getElementById("extracted_filter").innerHTML = JSON.stringify(result.condition);
+                document.getElementById("extracted_filter").innerHTML = JSON.stringify(result.extracted_filters);
                 // Display the final result
-                document.getElementById("raw_search_result").innerHTML = result.raw_search_results;
+                document.getElementById("raw_search_result").innerHTML = result.extracted_documents;
 
                 // Display the final result
-                document.getElementById("postfilter_result").innerHTML = result.postfilter_search_results;
+                document.getElementById("postfilter_result").innerHTML = result.postfiltered_documents;
 
                 // Display the final result
-                document.getElementById("rerank_result").innerHTML = result.rerank_search_results;
+                document.getElementById("rerank_result").innerHTML = result.ranked_documents;
 
                 // Display the final result
                 document.getElementById("prompt").innerText = result.promp;

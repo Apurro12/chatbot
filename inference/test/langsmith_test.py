@@ -5,10 +5,12 @@ from langchain.evaluation import JsonEqualityEvaluator
 from langsmith import Client
 from langsmith.evaluation import evaluate
 from langsmith.schemas import Example, Run
-from utils import extract_prefilter
+from filter_extractor import FilterExtractor
 
 LANGCHAIN_API_KEY = os.environ.get("LANGCHAIN_API_KEY")
 LANGCHAIN_ENDPOINT = os.environ.get("LANGCHAIN_ENDPOINT")
+
+filter_extractor_instance = FilterExtractor()
 
 client = Client(
     api_url=LANGCHAIN_ENDPOINT,
@@ -27,7 +29,7 @@ def get_feedback(results):
 
 
 def langsmith_app(inputs):
-    output = extract_prefilter(inputs["query"])
+    output =  filter_extractor_instance.extract_filter(inputs["query"])
     return {"output": output}
 
 
@@ -36,7 +38,7 @@ evaluator = JsonEqualityEvaluator()
 
 def custom_json_evaluator(run: Run, example: Example) -> dict:
     try:
-        parsed_json = json.loads(run.outputs["output"])
+        parsed_json = run.outputs["output"]
         example = example.outputs["result"]
         return {"key": "custom_json_evaluator", "score": int(parsed_json == example)}
     except json.JSONDecodeError:

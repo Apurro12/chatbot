@@ -42,8 +42,7 @@ RUN pip install pytest pylint
 WORKDIR /home
 # Multi stage build and refactor needed
 COPY inference/test/*_test.py .
-COPY inference/main.py .
-COPY inference/utils.py .
+COPY inference/*.py .
 COPY inference/static ./static
 COPY inference/templates ./templates
 
