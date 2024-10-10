@@ -1,32 +1,23 @@
-from pydantic import BaseModel
-from fastapi import FastAPI, Request
-from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
-from utils import handle_user_query, handle_intermediate_steps
-
-class UserQuery(BaseModel):
-    query: str
+"""
+This is the application
+"""
 
 
-app = FastAPI()
-
-# Serve static files like JS or CSS (optional)
-app.mount("/static", StaticFiles(directory="static"), name="static")
-
-# Serve HTML templates
-templates = Jinja2Templates(directory="templates")
-
-@app.post("/intermediate/")
-async def create_item(query: UserQuery):
-    return handle_intermediate_steps(query.query)
-
-@app.post("/chatbot/")
-async def get_final_response(query: UserQuery):
-    return handle_user_query(query.query)
+from database import Db
+from recommender import LlmRecomender
+from filter_extractor import FilterExtractor
+from processor import DocumentProcessor
+from recommendation_llm import RecommendationApp
+from fastapi_wrapper import FastAPIApp
 
 
-# Route to serve the HTML page
-@app.get("/webpage", response_class=HTMLResponse)
-async def read_root(request: Request):
-    return templates.TemplateResponse("index.html", {"request": request})
+db_instance = Db()
+recommender_instance = LlmRecomender()
+filter_extractor_instance = FilterExtractor()
+document_processer_instance = DocumentProcessor(db_instance, filter_extractor_instance)
+app_instance = RecommendationApp(document_processer_instance, recommender_instance)
+fast_api_app = FastAPIApp(app_instance)
+
+db_instance.init_db()
+fast_api_app.setup_routes()
+app = fast_api_app.app
