@@ -18,21 +18,21 @@ def default_promp(query: str) -> str:
     promp = f"""
     Given the user query inside <>
     Check if there is a strict constraint in bathrooms and price and extract the maximum price then respond a pytho dictionary with this format
-    {{"bathrooms": 2,"price": 20}}
+    {{"bathroms": 2,"price": 20}}
     
     If one the the two constraint is not present just write null
     
     Example 1:
     User Query: 'I want to rent an aparment in Palermo that have at least 2 bathrooms and a price bellow than $20 the night'
-    Response: {{"bathrooms": 2,"price": 20}}
+    Response: {{"bathroms": 2,"price": 20}}
     
     Example 2:
     User Query: 'I want to rent an apartment in Buenos Aires'
-    Response: {{"bathrooms": None,"price": None}}
+    Response: {{"bathroms": None,"price": None}}
     
     Example 3:
     User Query: 'How much costs a flat in New York with just one bath'
-    Response: {{"bathrooms": 1,"price": None}}
+    Response: {{"bathroms": 1,"price": None}}
     
     Do not respond anything different from the desired python dictionary
 
