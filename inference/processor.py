@@ -84,6 +84,7 @@ class DocumentProcessor:
 
         # index 1,2,3 .... N
         df.reset_index(drop=True)
+        df = df.replace('null', None)
 
         return df
 
